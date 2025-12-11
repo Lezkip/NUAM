@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Usuarios{% endblock %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h1 class="h3">Gestión de Usuarios</h1>
+    <p class="text-muted">Crear y administrar cuentas de Analistas y Corredores</p>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Crear Analista -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <strong>➕ Crear Analista</strong>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'crear_usuario' %}">
+          {% csrf_token %}
+          <input type="hidden" name="tipo_usuario" value="analista">
+          
+          <div class="mb-3">
+            <label class="form-label">Nombre de usuario</label>
+            <input type="text" name="username" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" name="first_name" class="form-control">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" name="last_name" class="form-control">
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Crear Analista</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crear Corredor -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <strong>➕ Crear Corredor (Solo Lectura)</strong>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'crear_usuario' %}">
+          {% csrf_token %}
+          <input type="hidden" name="tipo_usuario" value="corredor">
+          
+          <div class="mb-3">
+            <label class="form-label">Nombre de usuario</label>
+            <input type="text" name="username" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" name="first_name" class="form-control">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" name="last_name" class="form-control">
+          </div>
+          
+          <button type="submit" class="btn btn-info">Crear Corredor</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lista de usuarios existentes -->
+<div class="row mt-4">
+  <div class="col-md-12">
+    <h3 class="h5 mb-3">Usuarios Registrados</h3>
+    <div class="mb-3">
+      <input type="text" id="searchUsers" class="form-control" placeholder="🔍 Buscar por usuario, nombre o rol...">
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped" id="usersTable">
+        <thead class="table-dark">
+          <tr>
+            <th>Usuario</th>
+            <th>Nombre Completo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+            <tr>
+              <td><strong>{{ u.username }}</strong></td>
+              <td>{{ u.get_full_name|default:"—" }}</td>
+              <td>
+                {% if u.is_superuser %}
+                  <span class="badge bg-danger">Admin</span>
+                {% elif u.is_staff %}
+                  <span class="badge bg-primary">Analista</span>
+                {% else %}
+                  <span class="badge bg-info">Corredor</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge bg-success">Activo</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inactivo</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if not u.is_superuser %}
+                  <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion('{{ u.id }}', '{{ u.username }}')">Eliminar</button>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Formulario oculto para eliminar usuario -->
+<form id="deleteForm" method="post" style="display: none;">
+  {% csrf_token %}
+  <input type="hidden" id="deleteUserId" name="user_id">
+</form>
+
+<script>
+  function confirmarEliminacion(userId, username) {
+    if (confirm(`¿Eliminar usuario "${username}"?`)) {
+      document.getElementById('deleteUserId').value = userId;
+      document.getElementById('deleteForm').action = `/api/usuarios/eliminar/${userId}/`;
+      document.getElementById('deleteForm').submit();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchUsers');
+    const table = document.getElementById('usersTable');
+    if (searchInput && table) {
+      const rows = table.querySelectorAll('tbody tr');
+      searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? '' : 'none';
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}

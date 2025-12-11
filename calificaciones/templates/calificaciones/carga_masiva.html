@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Carga Masiva de Calificaciones{% endblock %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1 class="h3">Carga Masiva de Calificaciones</h1>
+    <p class="text-muted">Importa múltiples calificaciones desde un archivo Excel o CSV</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label for="id_archivo" class="form-label">Selecciona archivo (.xlsx, .xls o .csv)</label>
+            {{ form.archivo }}
+            <small class="form-text text-muted d-block mt-2">
+              El archivo debe contener las siguientes columnas:
+              <ul>
+                <li><strong>RUT</strong> - RUT del emisor (Ej: 76.123.456-7)</li>
+                <li><strong>Código Factor</strong> - Código del factor (Ej: FT-001)</li>
+                <li><strong>Comentario</strong> - Comentario opcional</li>
+              </ul>
+            </small>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">📤 Cargar archivo</button>
+          <a href="{% url 'calificacion_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card bg-light">
+      <div class="card-body">
+        <h5 class="card-title">📋 Instrucciones</h5>
+        <p class="small">
+          1. Prepara un archivo Excel o CSV con las columnas indicadas<br>
+          2. La primera fila debe ser el encabezado<br>
+          3. Cada fila posterior = una calificación<br>
+          4. Sube el archivo y valida los datos<br>
+          5. Se importarán todas las filas válidas
+        </p>
+        <hr>
+        <h6 class="card-subtitle">Formato esperado:</h6>
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th>RUT</th>
+              <th>Código Factor</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>76.123.456-7</td>
+              <td>FT-001</td>
+              <td>Calificación regular</td>
+            </tr>
+            <tr>
+              <td>77.234.567-8</td>
+              <td>FT-002</td>
+              <td>Excelente cumplimiento</td>
+            </tr>
+          </tbody>
+        </table>
+        <hr>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('id_archivo');
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB en bytes
+    
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        
+        if (file) {
+          const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+          
+          if (file.size > MAX_SIZE) {
+            // Mostrar alerta
+            alert(`❌ El archivo es demasiado grande (${fileSizeMB} MB). El tamaño máximo permitido es 10 MB.`);
+            
+            // Limpiar el input
+            this.value = '';
+            this.files = new DataTransfer().items;
+          } else {
+            console.log(`✓ Archivo válido: ${file.name} (${fileSizeMB} MB)`);
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

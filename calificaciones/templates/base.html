@@ -1,0 +1,95 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NUAM{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css">
+  <style>
+    :root {
+      --bs-primary: #7b5bdb; /* purple */
+      --bs-secondary: #c7c9d1; /* silver tone */
+      --bs-info: #b8a1ff;
+      --bs-body-bg: #f3f4f8;
+      --bs-body-color: #1f1b2d;
+    }
+    body {
+      padding-top: 2rem;
+      background: radial-gradient(circle at 15% 20%, rgba(123,91,219,0.12), transparent 28%),
+                  radial-gradient(circle at 80% 10%, rgba(199,201,209,0.22), transparent 26%),
+                  linear-gradient(135deg, #f7f8fb 0%, #eef0f7 50%, #f7f8fb 100%);
+    }
+    .navbar-brand { font-weight: 700; letter-spacing: 0.5px; }
+    .btn-velvet { background: linear-gradient(135deg, #2f2249, #48306d); color: #fff; border: 0; box-shadow: 0 8px 16px rgba(47,34,73,0.24); }
+    .btn-velvet:hover { color: #fff; filter: brightness(1.05); }
+    .btn-slate { background: linear-gradient(135deg, #24303b, #1b242d); color: #fff; border: 0; box-shadow: 0 8px 16px rgba(27,36,45,0.24); }
+    .btn-slate:hover { color: #fff; filter: brightness(1.05); }
+    .btn-plum { background: linear-gradient(135deg, #3a2959, #4a2f73); color: #fff; border: 0; box-shadow: 0 8px 16px rgba(58,41,89,0.24); }
+    .btn-plum:hover { color: #fff; filter: brightness(1.05); }
+    .btn-carbon { background: linear-gradient(135deg, #2d2d38, #1f1f28); color: #fff; border: 0; box-shadow: 0 8px 16px rgba(31,31,40,0.24); }
+    .btn-carbon:hover { color: #fff; filter: brightness(1.05); }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(90deg, #251b36 0%, #3b2f55 50%, #4e3f6d 100%);">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'dashboard' %}">NUAM</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'calificacion_list' %}">Calificaciones</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_emisores' %}">Emisores</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'lista_factores' %}">Factores</a>
+            </li>
+            {% if user.is_superuser or user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'lista_auditoria' %}">Auditoría</a>
+              </li>
+            {% endif %}
+          {% endif %}
+        </ul>
+        <div class="d-flex ms-auto align-items-center gap-2">
+          {% if user.is_authenticated %}
+            <span class="navbar-text text-light me-2">
+              {{ user.get_short_name|default:user.username }}
+              {% if user.is_superuser %}
+                <span class="badge bg-danger">Admin</span>
+              {% elif user.is_staff %}
+                <span class="badge bg-primary">Analista</span>
+              {% else %}
+                <span class="badge bg-info">Usuario</span>
+              {% endif %}
+            </span>
+            <form action="{% url 'logout' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-warning">Cerrar sesión</button>
+            </form>
+          {% else %}
+            <a class="btn btn-sm btn-outline-light" href="{% url 'login' %}">Ingresar</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+  <main class="container mt-4">
+    {% if messages %}
+      <div class="mt-2">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

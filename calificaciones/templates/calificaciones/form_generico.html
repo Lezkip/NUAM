@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1 class="h4 mb-4">{{ title }}</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  
+  {% for field in form %}
+    {% if field.field.widget.input_type != 'hidden' %}
+      <div class="mb-3">
+        <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="text-danger small mt-1">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+  </div>
+</form>
+
+<style>
+  select, input[type="text"], input[type="email"], input[type="number"], textarea {
+    width: 100% !important;
+    padding: 0.5rem !important;
+    border: 1px solid #ccc !important;
+    border-radius: 0.25rem !important;
+    font-family: inherit !important;
+  }
+  .form-label { font-weight: 600; margin-bottom: 0.5rem; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const rutInput = document.getElementById('id_rut');
+    if (rutInput) {
+      const formatRut = (value) => {
+        const raw = value.replace(/[^0-9Kk]/g, '').toUpperCase();
+        if (!raw) return '';
+        const body = raw.slice(0, -1);
+        const dv = raw.slice(-1);
+        const bodyWithDots = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return body ? `${bodyWithDots}-${dv}` : dv;
+      };
+
+      rutInput.addEventListener('input', function (e) {
+        const caretEnd = e.target.selectionEnd;
+        e.target.value = formatRut(e.target.value);
+        e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+      });
+    }
+  });
+</script>
+{% endblock %}

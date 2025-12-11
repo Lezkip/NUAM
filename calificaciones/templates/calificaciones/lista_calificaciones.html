@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Listado de Calificaciones{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3">Calificaciones Tributarias</h1>
+  {% if user.is_superuser or user.is_staff %}
+    <div class="btn-group">
+      <a href="{% url 'calificacion_create' %}" class="btn btn-primary">+ Nueva Calificación</a>
+      <a href="{% url 'carga_masiva_calificaciones' %}" class="btn btn-info">📤 Carga Masiva</a>
+    </div>
+  {% endif %}
+</div>
+
+{% if calificaciones %}
+  <div class="mb-3">
+    <input type="text" id="searchTable" class="form-control" placeholder="🔍 Buscar por ID, emisor, RUT, factor, fecha, usuario o comentario...">
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover" id="dataTable">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Emisor</th>
+          <th>RUT</th>
+          <th>Factor</th>
+          <th>Fecha</th>
+          <th>Usuario</th>
+          <th>Comentario</th>
+          {% if user.is_superuser or user.is_staff %}<th>Acciones</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in calificaciones %}
+          <tr>
+            <td>#{{ c.id }}</td>
+            <td>{{ c.emisor.nombre }}</td>
+            <td>{{ c.emisor.rut }}</td>
+            <td><span class="badge bg-info">{{ c.factor.codigo }}</span></td>
+            <td>{{ c.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+            <td>{{ c.usuario.username }}</td>
+            <td>{{ c.comentario|default:"—"|truncatewords:10 }}</td>
+            {% if user.is_superuser or user.is_staff %}
+            <td>
+              <a href="{% url 'calificacion_update' c.id %}" class="btn btn-sm btn-warning">Editar</a>
+              <a href="{% url 'calificacion_delete' c.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">No hay calificaciones registradas.</div>
+{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchTable');
+    const table = document.getElementById('dataTable');
+    if (searchInput && table) {
+      const rows = table.querySelectorAll('tbody tr');
+      searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? '' : 'none';
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}

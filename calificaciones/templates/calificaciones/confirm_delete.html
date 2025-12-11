@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Confirmar Eliminación{% endblock %}
+{% block content %}
+<div class="card border-warning">
+  <div class="card-header bg-warning text-dark">
+    <strong>Confirmar eliminación</strong>
+  </div>
+  <div class="card-body">
+    <p class="mb-3">
+      {% if logical %}
+        ¿Deseas realizar una <strong>baja lógica</strong> de este registro?
+        <br><small class="text-muted">Tiene histórico asociado, será desactivado en lugar de eliminarse.</small>
+      {% else %}
+        ¿Estás seguro de que deseas <strong>eliminar permanentemente</strong> este registro?
+      {% endif %}
+    </p>
+    <p><strong>{{ obj }}</strong></p>
+    
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+    </form>
+    <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+  </div>
+</div>
+{% endblock %}

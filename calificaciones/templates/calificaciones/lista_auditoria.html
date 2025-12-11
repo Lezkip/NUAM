@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Auditoría y Historial{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Historial de Cambios</h1>
+
+{% if user.is_superuser or user.is_staff %}
+  <ul class="nav nav-pills mb-3" id="auditSortNav">
+    <li class="nav-item"><a class="nav-link active" href="#" data-sort="desc">Más reciente</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-sort="asc">Más antiguo</a></li>
+  </ul>
+  {% if historial %}
+    <div class="mb-3">
+      <input type="text" id="searchAudit" class="form-control" placeholder="🔍 Buscar por fecha, usuario, emisor, factor o comentario...">
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped" id="auditTable">
+        <thead class="table-dark">
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Emisor</th>
+            <th>Factor Anterior</th>
+            <th>Factor Nuevo</th>
+            <th>Comentario Anterior</th>
+            <th>Comentario Nuevo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in historial %}
+            <tr>
+              <td>{{ h.fecha|date:"d/m/Y H:i:s" }}</td>
+              <td>{{ h.usuario.username }}</td>
+              <td>{{ h.emisor.nombre }}</td>
+              <td>
+                {% if h.factor_anterior %}
+                  <span class="badge bg-danger">{{ h.factor_anterior }}</span>
+                {% else %}
+                  <span class="text-muted">N/A</span>
+                {% endif %}
+              </td>
+              <td><span class="badge bg-success">{{ h.factor_nuevo }}</span></td>
+              <td style="max-width: 300px; white-space: pre-wrap; word-wrap: break-word;">{{ h.comentario_anterior|default:"—" }}</td>
+              <td style="max-width: 300px; white-space: pre-wrap; word-wrap: break-word;">{{ h.comentario_nuevo|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No hay cambios registrados.</div>
+  {% endif %}
+{% else %}
+  <div class="alert alert-warning">
+    <strong>Acceso restringido:</strong> Solo los Analistas pueden ver el historial de auditoría.
+  </div>
+{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchAudit');
+    const table = document.getElementById('auditTable');
+    if (searchInput && table) {
+      const rows = table.querySelectorAll('tbody tr');
+      
+      searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? '' : 'none';
+        });
+      });
+    }
+
+    // Ordenar por fecha
+    const sortLinks = document.querySelectorAll('#auditSortNav a[data-sort]');
+    const tbody = table ? table.querySelector('tbody') : null;
+    if (tbody && sortLinks.length) {
+      const parseDate = (text) => {
+        const [datePart, timePart] = text.trim().split(' ');
+        if (!datePart || !timePart) return 0;
+        const [d, m, y] = datePart.split('/').map(Number);
+        const [hh, mm, ss] = timePart.split(':').map(Number);
+        return new Date(y, m - 1, d, hh, mm, ss).getTime();
+      };
+
+      sortLinks.forEach(link => {
+        link.addEventListener('click', function(ev) {
+          ev.preventDefault();
+          sortLinks.forEach(l => l.classList.remove('active'));
+          this.classList.add('active');
+          const dir = this.dataset.sort;
+          const rowsArr = Array.from(tbody.querySelectorAll('tr'));
+          rowsArr.sort((a, b) => {
+            const aDate = parseDate(a.cells[0].innerText);
+            const bDate = parseDate(b.cells[0].innerText);
+            return dir === 'desc' ? bDate - aDate : aDate - bDate;
+          });
+          rowsArr.forEach(r => tbody.appendChild(r));
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h1 class="h2">Bienvenido, {{ user.get_full_name|default:user.username }}!</h1>
+    <p class="text-muted">
+      {% if user.is_superuser %}
+        <span class="badge bg-danger">Administrador</span>
+      {% elif user.is_staff %}
+        <span class="badge bg-primary">Analista</span>
+      {% else %}
+        <span class="badge bg-info">Usuario</span>
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <!-- CALIFICACIONES (Todos pueden ver) -->
+  <div class="col-md-6 mb-3">
+    <div class="card">
+      <div class="card-header text-white" style="background: linear-gradient(135deg, #2b2147, #3d2f63);">
+        <strong>📊 Calificaciones</strong>
+      </div>
+      <div class="card-body">
+        <p>Consulta el listado de calificaciones tributarias vigentes.</p>
+        <a href="{% url 'calificacion_list' %}" class="btn btn-sm btn-velvet">Ver Calificaciones</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMISORES (Todos pueden ver) -->
+  <div class="col-md-6 mb-3">
+    <div class="card">
+      <div class="card-header text-white" style="background: linear-gradient(135deg, #2f3a44, #1f2831);">
+        <strong>🏢 Emisores</strong>
+      </div>
+      <div class="card-body">
+        <p>Ver emisores tributarios registrados.</p>
+        <a href="{% url 'lista_emisores' %}" class="btn btn-sm btn-slate">Ver Emisores</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FACTORES (Todos pueden ver) -->
+  <div class="col-md-6 mb-3">
+    <div class="card">
+      <div class="card-header text-white" style="background: linear-gradient(135deg, #46345f, #2e2143);">
+        <strong>📋 Factores Tributarios</strong>
+      </div>
+      <div class="card-body">
+        <p>Ver factores tributarios disponibles.</p>
+        <a href="{% url 'lista_factores' %}" class="btn btn-sm btn-plum">Ver Factores</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDITORÍA (Solo Analista/Admin) -->
+  {% if user.is_superuser or user.is_staff %}
+    <div class="col-md-6 mb-3">
+      <div class="card">
+        <div class="card-header text-white" style="background: linear-gradient(135deg, #3b3b4f, #2b2b3c);">
+          <strong>📜 Auditoría</strong>
+        </div>
+        <div class="card-body">
+          <p>Revisar el historial de cambios: quién, cuándo y qué modificó.</p>
+          <a href="{% url 'lista_auditoria' %}" class="btn btn-sm btn-carbon">Ver Historial</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- GESTIÓN DE USUARIOS (Solo Admin) -->
+  {% if user.is_superuser %}
+    <div class="col-md-6 mb-3">
+      <div class="card">
+        <div class="card-header text-white" style="background: linear-gradient(135deg, #5a2a56, #3a1a36);">
+          <strong>👥 Gestión de Usuarios</strong>
+        </div>
+        <div class="card-body">
+          <p>Crear y administrar cuentas de Analistas y Corredores.</p>
+          <a href="{% url 'gestion_usuarios' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #5a2a56, #3a1a36); color: #fff; border: 0;">Administrar Usuarios</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% if not user.is_staff and not user.is_superuser %}
+  <div class="alert alert-info mt-4">
+    <strong>Perfil de Consulta:</strong> Tu acceso se limita a visualizar información. 
+    Contacta a un administrador para solicitar permisos de edición.
+  </div>
+{% endif %}
+
+{% endblock %}
