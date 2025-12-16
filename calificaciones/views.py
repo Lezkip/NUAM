@@ -210,7 +210,7 @@ def lista_calificaciones(request):
 
 @login_required
 def detalle_calificacion(request, id):
-    # ESTA ES LA FUNCIÓN QUE TE FALTABA
+    
     try:
         c = Calificacion.objects.select_related('emisor', 'factor').get(id=id)
         data = {

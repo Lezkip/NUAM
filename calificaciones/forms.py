@@ -35,7 +35,7 @@ class EmisorForm(forms.ModelForm):
 class FactorForm(forms.ModelForm):
     class Meta:
         model = FactorTributario
-        # Ajustado a tus campos reales: 'codigo' y 'descripcion'
+        # Ajustado a los campos reales: 'codigo' y 'descripcion'
         fields = ['codigo', 'descripcion']
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control'}),
