@@ -16,6 +16,7 @@
       <table class="table table-striped" id="auditTable">
         <thead class="table-dark">
           <tr>
+            <th>Acción</th>
             <th>Fecha</th>
             <th>Usuario</th>
             <th>Emisor</th>
@@ -28,17 +29,34 @@
         <tbody>
           {% for h in historial %}
             <tr>
+              <td>
+                {% if h.accion == 'CREAR' %}
+                  <span class="badge bg-success">Crear</span>
+                {% elif h.accion == 'EDITAR' %}
+                  <span class="badge bg-warning text-dark">Editar</span>
+                {% elif h.accion == 'ELIMINAR' %}
+                  <span class="badge bg-danger">Eliminar</span>
+                {% else %}
+                  <span class="badge bg-info">{{ h.get_accion_display }}</span>
+                {% endif %}
+              </td>
               <td>{{ h.fecha|date:"d/m/Y H:i:s" }}</td>
               <td>{{ h.usuario.username }}</td>
               <td>{{ h.emisor.nombre }}</td>
               <td>
                 {% if h.factor_anterior %}
-                  <span class="badge bg-danger">{{ h.factor_anterior }}</span>
+                  <span class="badge bg-secondary">{{ h.factor_anterior }}</span>
                 {% else %}
                   <span class="text-muted">N/A</span>
                 {% endif %}
               </td>
-              <td><span class="badge bg-success">{{ h.factor_nuevo }}</span></td>
+              <td>
+                {% if h.factor_nuevo %}
+                  <span class="badge bg-primary">{{ h.factor_nuevo }}</span>
+                {% else %}
+                  <span class="text-muted">N/A</span>
+                {% endif %}
+              </td>
               <td style="max-width: 300px; white-space: pre-wrap; word-wrap: break-word;">{{ h.comentario_anterior|default:"—" }}</td>
               <td style="max-width: 300px; white-space: pre-wrap; word-wrap: break-word;">{{ h.comentario_nuevo|default:"—" }}</td>
             </tr>

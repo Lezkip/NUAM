@@ -130,7 +130,21 @@ def factor_create(request):
     if request.method == "POST":
         form = FactorForm(request.POST)
         if form.is_valid():
-            form.save()
+            nuevo_factor = form.save()
+            
+            # Registrar creación en auditoría
+            primer_emisor = Emisor.objects.first()
+            if primer_emisor:
+                HistorialAuditoria.objects.create(
+                    accion='CREAR',
+                    usuario=request.user,
+                    emisor=primer_emisor,
+                    factor_anterior=None,
+                    factor_nuevo=nuevo_factor.codigo,
+                    comentario_anterior='',
+                    comentario_nuevo=f"Factor creado: {nuevo_factor.codigo} - {nuevo_factor.descripcion}"
+                )
+            
             messages.success(request, "Factor creado correctamente.")
             return redirect("lista_factores")
     else:
@@ -146,13 +160,14 @@ def factor_update(request, pk):
     if request.method == "POST":
         form = FactorForm(request.POST, instance=factor)
         if form.is_valid():
-            form.save()
-
-            # Registrar auditoría de cambio de código o descripción de factor
-            codigo_nuevo = factor.codigo
-            descripcion_nueva = factor.descripcion
+            # Capturar valores nuevos del formulario ANTES de guardar
+            codigo_nuevo = form.cleaned_data['codigo']
+            descripcion_nueva = form.cleaned_data['descripcion']
+            
+            # Verificar si hubo cambios
             if codigo_anterior != codigo_nuevo or descripcion_anterior != descripcion_nueva:
-                emisor_ids = Calificacion.objects.filter(factor=factor).values_list('emisor_id', flat=True).distinct()
+                # Guardar cambios en BD
+                form.save()
                 
                 # Construir mensaje de cambios
                 cambios = []
@@ -162,19 +177,41 @@ def factor_update(request, pk):
                     cambios.append(f"Descripción: {descripcion_anterior} → {descripcion_nueva}")
                 mensaje_cambios = " | ".join(cambios)
                 
-                registros = [
-                    HistorialAuditoria(
-                        usuario=request.user,
-                        emisor_id=emisor_id,
-                        factor_anterior=codigo_anterior,
-                        factor_nuevo=codigo_nuevo,
-                        comentario_anterior=descripcion_anterior,
-                        comentario_nuevo=mensaje_cambios
-                    )
-                    for emisor_id in emisor_ids
-                ]
-                if registros:
+                # Registrar auditoría para todos los emisores con este factor
+                emisor_ids = Calificacion.objects.filter(factor=factor).values_list('emisor_id', flat=True).distinct()
+                
+                if emisor_ids:
+                    # Si hay emisores asociados, registrar para cada uno
+                    registros = [
+                        HistorialAuditoria(
+                            accion='EDITAR',
+                            usuario=request.user,
+                            emisor_id=emisor_id,
+                            factor_anterior=codigo_anterior,
+                            factor_nuevo=codigo_nuevo,
+                            comentario_anterior=descripcion_anterior,
+                            comentario_nuevo=mensaje_cambios
+                        )
+                        for emisor_id in emisor_ids
+                    ]
                     HistorialAuditoria.objects.bulk_create(registros)
+                else:
+                    # Si no hay emisores asociados, registrar un cambio genérico
+                    # usando el primer emisor disponible o creando una entrada sin emisor específico
+                    primer_emisor = Emisor.objects.first()
+                    if primer_emisor:
+                        HistorialAuditoria.objects.create(
+                            accion='EDITAR',
+                            usuario=request.user,
+                            emisor=primer_emisor,
+                            factor_anterior=codigo_anterior,
+                            factor_nuevo=codigo_nuevo,
+                            comentario_anterior=descripcion_anterior,
+                            comentario_nuevo=f"Cambio de factor (sin asignaciones): {mensaje_cambios}"
+                        )
+            else:
+                # Si no hay cambios, guardar igual
+                form.save()
 
             messages.success(request, "Factor actualizado.")
             return redirect("lista_factores")
@@ -192,7 +229,25 @@ def factor_delete(request, pk):
         return redirect("lista_factores")
 
     if request.method == "POST":
+        # Guardar info del factor antes de eliminar
+        codigo_eliminado = factor.codigo
+        descripcion_eliminada = factor.descripcion
+        
         factor.delete()
+        
+        # Registrar eliminación en auditoría
+        primer_emisor = Emisor.objects.first()
+        if primer_emisor:
+            HistorialAuditoria.objects.create(
+                accion='ELIMINAR',
+                usuario=request.user,
+                emisor=primer_emisor,
+                factor_anterior=codigo_eliminado,
+                factor_nuevo='',
+                comentario_anterior=descripcion_eliminada,
+                comentario_nuevo=f"Factor eliminado: {codigo_eliminado} - {descripcion_eliminada}"
+            )
+        
         messages.success(request, "Factor eliminado.")
         return redirect("lista_factores")
         

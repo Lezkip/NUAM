@@ -1,6 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Carga Masiva de Calificaciones{% endblock %}
 {% block content %}
+<style>
+  #id_archivo {
+    background: linear-gradient(90deg, #251b36 0%, #3b2f55 50%, #4e3f6d 100%);
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  #id_archivo::file-selector-button {
+    background: linear-gradient(135deg, #251b36, #3b2f55);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+  }
+  #id_archivo::file-selector-button:hover {
+    background: linear-gradient(135deg, #3b2f55, #4e3f6d);
+    filter: brightness(1.1);
+  }
+  #id_archivo:hover {
+    border-color: rgba(255,255,255,0.5);
+  }
+</style>
 <div class="row mb-4">
   <div class="col-md-8">
     <h1 class="h3">Carga Masiva de Calificaciones</h1>

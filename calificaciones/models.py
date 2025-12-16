@@ -61,6 +61,13 @@ class Calificacion(models.Model):
 # 4. HISTORIAL DE AUDITORÍA
 # ================================
 class HistorialAuditoria(models.Model):
+    ACCION_CHOICES = [
+        ('CREAR', 'Crear'),
+        ('EDITAR', 'Editar'),
+        ('ELIMINAR', 'Eliminar'),
+        ('ASIGNAR', 'Asignar'),
+    ]
+    accion = models.CharField(max_length=10, choices=ACCION_CHOICES, default='EDITAR')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     emisor = models.ForeignKey(Emisor, on_delete=models.CASCADE)
     factor_anterior = models.CharField(max_length=50, null=True, blank=True)
